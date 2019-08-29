@@ -12,3 +12,4 @@ applications/**
 api/**
 bundles/**/locale/*.js
 *.min.js
+peltodata/**
