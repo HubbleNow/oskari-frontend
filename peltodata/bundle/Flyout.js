@@ -12,6 +12,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
      *        instance reference to component that created the tile
      */
     function (instance) {
+        console.log('constructor');
         var me = this;
         me.instance = instance;
         me.container = null;
@@ -19,6 +20,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
         me.template = null;
         me.cleanData = null;
         me.activeRole = null;
+        me.fields = [];
         me.progressSpinner = Oskari.clazz.create('Oskari.userinterface.component.ProgressSpinner');
         me._templates = {
             table: jQuery('<table class="layer-rights-table"><thead></thead><tbody></tbody></table>'),
@@ -49,7 +51,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
          *
          * Interface method implementation
          */
-        setEl: function (el, width, height) {
+        setEl(el, width, height) {
             this.container = el[0];
             if (!jQuery(this.container).hasClass('peltodata')) {
                 jQuery(this.container).addClass('peltodata');
@@ -62,24 +64,50 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
          * Interface method implementation, assigns the HTML templates
          * that will be used to create the UI
          */
-        startPlugin: function () {
-            this.template = jQuery(
-                `<div class="peltodata">
-                    <form method="post" id="peltodata-form">
-                        <label>
-                            <span></span>          
-                            <select class="peltodata-role"></select>
-                        </label>       
-                   <div class="peltodata-farmfields">       
-                   </div>       
-                   <div class="controls"></div>   
-                   </form>
-               </div>`
-            );
-            var elParent = this.container.parentElement.parentElement;
-            jQuery(elParent).addClass('peltodata-flyout');
+        startPlugin() {
+            console.log('startPlugin');
+            this.loadFields();
+
         },
 
+        loadFields() {
+            // jQuery.ajax({
+            //     type: 'GET',
+            //     dataType: 'json',
+            //     data: queryData,
+            //     url: Oskari.urls.getRoute('GetHierarchicalMapLayerGroups'),
+            //     success: function (pResp) {
+            //         me._loadAllLayerGroupsAjaxCallBack(pResp, callbackSuccess);
+            //     },
+            //     error: function (jqXHR, textStatus) {
+            //         if (callbackFailure && jqXHR.status !== 0) {
+            //             callbackFailure();
+            //         }
+            //     }
+            // });
+            var fields = [
+                {
+                    id: 1,
+                    description: 'Pelto #1',
+                    sowingDate: new Date(),
+                    cropType: 'oat',
+                }, {
+                    id: 2,
+                    description: 'Pelto #2',
+                    sowingDate: new Date(),
+                    cropType: 'wheat',
+                },
+            ];
+
+            fields.push({
+                id: -1,
+                description: this.instance.getLocalization('new-field'),
+                sowingDate: null,
+                cropType: ''
+            });
+
+            this.fields = fields;
+        },
         /**
          * @method stopPlugin
          *
@@ -119,6 +147,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
          * @param {Object} state
          */
         setState: function (state) {
+            console.log('setState', state);
             this.state = state;
         },
 
@@ -127,6 +156,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
          * @return {Object} state
          */
         getState: function () {
+            console.log('getState', state);
             if (!this.state) {
                 return {};
             }
@@ -137,6 +167,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
          * Save layer rights
          */
         doSave: function () {
+            console.log('doSave', state);
             var me = this,
                 changedPermissions = me.extractSelections();
 
@@ -214,48 +245,63 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Flyout',
             });
         },
 
-        /**
-         * @method setContent
-         * Creates the UI for a fresh start
-         * @param {String} content
-         */
-        setContent: function (content) {
-            // TODO add filters (provider/theme etc.)
-            var me = this,
-                flyout = jQuery(this.container),
-                container = this.template.clone(),
-                button = Oskari.clazz.create('Oskari.userinterface.component.Button'),
-                controls = container.find('div.controls'),
-                roleSelectLabel = container.find('label > span'),
-                roleSelect = container.find('select.peltodata-role');
+        addTextInput(id, value, placeHolder, groupPanel) {
+            const field1 = Oskari.clazz.create(
+                'Oskari.userinterface.component.TextInput');
+            field1.setTitle(placeHolder);
+            field1.setValue(value);
+            // field1.setId(id);
+            jQuery(groupPanel.getContainer()).append(field1.getElement());
+        },
+        addCropSelect(id, value, placeHolder, groupPanel) {
+            const field1 = Oskari.clazz.create(
+                'Oskari.userinterface.component.Select');
+            field1.setTitle(placeHolder);
 
-            flyout.empty();
-            button.setTitle(me.instance.getLocalization('save'));
-
-            button.setHandler(
-                function () {
-                    me.doSave();
-                }
+            const options = [{
+                value: 'wheat',
+                title: 'Wheat',
+            }, {
+                value: 'oat',
+                title: 'Oat',
+            }];
+            field1.setOptions(options);
+            field1.setValue(value);
+            // field1.setId(id);
+            jQuery(groupPanel.getContainer()).append(field1.getElement());
+        },
+        setContent(content) {
+            console.log('setContent', content);
+            var template = jQuery(
+                `<div class="peltodata-fields">
+                   <div class="peltodata-farmfields">       
+                   </div>       
+               </div>`
             );
-            // Not sure if we want save on enter
-            // field.bindEnterKey(doSave);
 
-            controls.append(button.getElement());
+            var flyout = jQuery(this.container);
+            flyout.append(template);
 
-            roleSelectLabel.html(this.instance.getLocalization('selectRole'));
-            container.append(content);
+            const accordion = Oskari.clazz.create(
+                'Oskari.userinterface.component.Accordion'
+            );
+            var fieldsDiv = flyout.find('div.peltodata-farmfields');
+            accordion.insertTo(fieldsDiv);
 
-            roleSelect.on('change', function (event) {
-                me.activeRole = jQuery(event.currentTarget).val();
-                me.updatePermissionsTable(me.activeRole, 'ROLE');
+            this.fields.forEach(field => {
+                const groupPanel = Oskari.clazz.create(
+                    'Oskari.userinterface.component.AccordionPanel'
+                );
+                groupPanel.setTitle(field.description);
+                groupPanel.setId(`oskari_layerselector2_accordionPanel_${field.id}`);
+
+                this.addTextInput(`${field.id}-descr`, field.description, 'Kuvaus', groupPanel);
+                this.addCropSelect(`${field.id}-crop`, field.cropType,'Viljelykasvi', groupPanel);
+                // this.addInput(`${field.id}-sowing-date`, field.sowingDate, 'Kylvöpäivä', groupPanel);
+                // this.addInput(`${field.id}-crop`, field.cropType,'Viljelykasvi', groupPanel);
+
+                accordion.addPanel(groupPanel);
             });
-
-            flyout.append(container);
-            // We're only supporting ROLE ATM, USER support might be added later
-            me.getExternalIdsAjaxRequest('ROLE');
-
-            /* progress */
-            this.progressSpinner.insertTo(container);
         },
 
         handleRoleChange: function (role, operation) {
