@@ -3,22 +3,18 @@
  *
  * Definition for bundle. See source for details.
  */
-Oskari.clazz.define("Oskari.mapframework.bundle.peltodata.PeltodataBundle", function () {
+Oskari.clazz.define("Oskari.peltodata.bundle.PeltodataBundle", function () {
 
 }, {
     "create": function () {
-        var me = this;
-        var inst = Oskari.clazz.create("Oskari.mapframework.bundle.peltodata.PeltodataInstance");
-
-        return inst;
-
+        return Oskari.clazz.create("Oskari.peltodata.bundle.PeltodataInstance");
     },
     "update": function (manager, bundle, bi, info) {
 
     },
 }, {
 
-    "protocol": ["Oskari.bundle.Bundle", "Oskari.mapframework.bundle.extension.ExtensionBundle"],
+    "protocol": ["Oskari.bundle.Bundle"],
     "source": {
         "scripts": [{
             "type": "text/javascript",
@@ -46,13 +42,7 @@ Oskari.clazz.define("Oskari.mapframework.bundle.peltodata.PeltodataBundle", func
     },
     "bundle": {
         "manifest": {},
-    },
-
-    /**
-     * @static
-     * @property dependencies
-     */
-    "dependencies": ["jquery"],
+    }
 });
 
-Oskari.bundle_manager.installBundleClass("peltodata", "Oskari.mapframework.bundle.peltodata.PeltodataBundle");
+Oskari.bundle_manager.installBundleClass("peltodata", "Oskari.peltodata.bundle.PeltodataBundle");

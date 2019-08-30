@@ -1,3 +1,6 @@
+
+import { PeltodataFlyout } from './Flyout';
+
 /**
  * @class Oskari.framework.bundle.peltodata.AdminLayerRightsBundleInstance
  *
@@ -6,7 +9,7 @@
  * See Oskari.framework.bundle.peltodata.AdminLayerRightsBundle for bundle definition.
  *
  */
-Oskari.clazz.define('Oskari.mapframework.bundle.peltodata.PeltodataInstance',
+Oskari.clazz.define('Oskari.peltodata.bundle.PeltodataInstance',
 
     /**
      * @method create called automatically on construction
@@ -66,8 +69,6 @@ Oskari.clazz.define('Oskari.mapframework.bundle.peltodata.PeltodataInstance',
          *      structure and if parameter key is given
          */
         getLocalization: function (key) {
-            console.log(key, 'foooo', this.getName());
-            console.log(Oskari);
             if (!this._localization) {
                 this._localization = Oskari.getLocalization(this.getName());
             }
@@ -185,8 +186,6 @@ Oskari.clazz.define('Oskari.mapframework.bundle.peltodata.PeltodataInstance',
          * Oskari.mapframework.bundle.publisher.Tile
          */
         startExtension: function () {
-            this.plugins['Oskari.userinterface.Flyout'] =
-                Oskari.clazz.create('Oskari.framework.bundle.peltodata.Flyout', this);
             this.plugins['Oskari.userinterface.Tile'] =
                 Oskari.clazz.create('Oskari.framework.bundle.peltodata.Tile', this);
         },
@@ -235,7 +234,6 @@ Oskari.clazz.define('Oskari.mapframework.bundle.peltodata.PeltodataInstance',
          */
         createUi: function () {
             var me = this;
-            me.plugins['Oskari.userinterface.Flyout'].setContent();
             me.plugins['Oskari.userinterface.Tile'].refresh();
         },
 
@@ -244,7 +242,6 @@ Oskari.clazz.define('Oskari.mapframework.bundle.peltodata.PeltodataInstance',
          * @param {Object} state bundle state as JSON
          */
         setState: function (state) {
-            this.plugins['Oskari.userinterface.Flyout'].setState(state);
         },
 
         /**

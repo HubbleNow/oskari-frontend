@@ -1,3 +1,5 @@
+import { PeltodataFlyout } from './Flyout';
+
 /*
  * @class Oskari.framework.bundle.peltodata.Tile
  *
@@ -16,6 +18,8 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Tile',
         me.instance = instance;
         me.container = null;
         me.template = null;
+        me.flyoutVisible = false;
+        me.flyout = new PeltodataFlyout(this.instance.getLocalization('title'), { width: '500px', height: '800px'});
     }, {
         /**
          * @method getName
@@ -43,19 +47,30 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Tile',
          * Interface method implementation, calls #refresh()
          */
         startPlugin: function () {
-            this._addTileStyleClasses();
             this.refresh();
         },
-        _addTileStyleClasses: function () {
-            var isContainer = !!((this.container && this.instance.mediator));
-            var isBundleId = !!((isContainer && this.instance.mediator.bundleId));
-            var isInstanceId = !!((isContainer && this.instance.mediator.instanceId));
+        hideFlyout() {
+            console.log('hideFlyout');
+            this.flyoutVisible = false;
 
-            if (isInstanceId && !this.container.hasClass(this.instance.mediator.instanceId)) {
-                this.container.addClass(this.instance.mediator.instanceId);
-            }
-            if (isBundleId && !this.container.hasClass(this.instance.mediator.bundleId)) {
-                this.container.addClass(this.instance.mediator.bundleId);
+            this.container.removeClass('oskari-tile-attached');
+            this.container.addClass('oskari-tile-closed');
+            this.flyout.hide();
+        },
+        showFlyout() {
+            console.log('showFlyout');
+            this.flyoutVisible = true;
+            this.container.addClass('oskari-tile-attached');
+            this.container.removeClass('oskari-tile-closed');
+            this.flyout.show();
+            this.flyout.move(200, 30, true);
+        },
+        clickHandler(data) {
+            console.log(data);
+            if (this.flyoutVisible) {
+                this.hideFlyout();
+            } else {
+                this.showFlyout();
             }
         },
         /**
@@ -93,7 +108,7 @@ Oskari.clazz.define('Oskari.framework.bundle.peltodata.Tile',
          * Interface method implementation, does nothing atm
          */
         setState: function (state) {
-
+            console.log('state')
         },
         /**
          * @method refresh
