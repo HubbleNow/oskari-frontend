@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import PropTypes from 'prop-types';
 
 import Collapse from 'antd/lib/collapse';
@@ -13,30 +14,38 @@ export class FlyoutContent extends React.Component {
     constructor(props) {
         super(props);
         const localization = Oskari.getLocalization("peltodata");
+
+        this.loadFields();
+
         this.state = {
-            fields: [{
-                id: 1,
-                description: 'Pelto #1',
-                sowingDate: new Date(),
-                cropType: 'oat'
-            }, {
-                id: 2,
-                description: 'Pelto #2',
-                sowingDate: new Date(),
-                cropType: 'wheat'
-            }, {
+            newFieldTemplate: {
                 id: -1,
-                description: localization.new_field,
+                farmfieldDescription: localization.new_field,
                 sowingDate: new Date(),
                 cropType: ''
-            }]
+            },
+            fields: []
         };
+    }
+    async loadFields() {
+        const fields = [];
+        try {
+            const response = await axios.get("peltodata/api/farms");
+            response.data.forEach(d => fields.push(d));
+        } catch (error) {
+            console.log(error);
+        }
+
+        fields.push(this.state.newFieldTemplate);
+        this.setState({
+            fields,
+        })
     }
     render() {
         const fields = [];
         this.state.fields.forEach(field => {
             fields.push(
-                <Panel header={ field.description } key={ field.id }>
+                <Panel header={ field.farmfieldDescription } key={ field.farmfieldId }>
                     <FarmFieldForm field={ field }></FarmFieldForm>
                 </Panel>
             )

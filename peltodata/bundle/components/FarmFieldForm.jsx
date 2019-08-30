@@ -1,9 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-// import AntButton from 'antd/lib/button';
-
+import axios from 'axios';
 import moment from 'moment';
-// import 'moment/min/locales';
 
 import Input from 'antd/lib/input';
 import Form from 'antd/lib/form';
@@ -37,8 +34,8 @@ export class FarmFieldForm extends React.Component {
         this.state = {
             localization,
             date: moment(props.field.sowingDate),
-            id: props.field.id,
-            description: props.field.id === -1 ? '' : props.field.description,
+            id: props.field.farmfieldId,
+            farmfieldDescription: props.field.id === -1 ? '' : props.field.farmfieldDescription,
             cropType: props.field.cropType,
             dirty: false,
             cropTypes: [{
@@ -59,9 +56,10 @@ export class FarmFieldForm extends React.Component {
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.handleSowingDateChange = this.handleSowingDateChange.bind(this);
         this.handleCropTypeChange = this.handleCropTypeChange.bind(this);
+        this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
     }
     handleDescriptionChange(event) {
-        this.setState({ description: event.target.value, dirty: true });
+        this.setState({ farmfieldDescription: event.target.value, dirty: true });
     }
     handleSowingDateChange(date) {
         this.setState({ date, dirty: true });
@@ -71,6 +69,36 @@ export class FarmFieldForm extends React.Component {
             cropType: cropType,
             dirty: true,
         });
+    }
+    async addNewField() {
+        const data = {
+            farmfieldDescription: this.state.farmfieldDescription,
+        };
+        try {
+            const response = await axios.post('/peltodata/api/farms', data);
+            console.log(response);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    async updateField() {
+        console.log(this);
+        const data = {
+            farmfieldDescription: this.state.farmfieldDescription,
+        };
+        try {
+            const response = await axios.post(`/peltodata/api/farms/${this.state.id}`, data);
+            console.log(response);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    handleSaveButtonClick() {
+        if (this.state.id === -1) {
+            this.addNewField();
+        } else {
+            this.updateField();
+        }
     }
     getCropTypeOptions() {
         const options = [];
@@ -109,7 +137,7 @@ export class FarmFieldForm extends React.Component {
                 <Col span={24}>
                     <Form {...formItemLayout} onSubmit={this.handleSubmit}>
                         <Form.Item label={ this.state.localization.field_description } style={{ 'marginBottom': '12px' }}>
-                            <Input value={ this.state.description } onChange={ this.handleDescriptionChange }></Input>
+                            <Input value={ this.state.farmfieldDescription } onChange={ this.handleDescriptionChange }></Input>
                         </Form.Item>
                         <Form.Item label={ this.state.localization.sowing_date } style={{ 'marginBottom': '12px' }}>
                             <DatePicker popupStyle={datePickerPopupStyle}
@@ -121,7 +149,7 @@ export class FarmFieldForm extends React.Component {
                             </Select>
                         </Form.Item>
                         <Form.Item wrapperCol={ noLabelWrapperCol } style={{ 'marginBottom': '12px' }}>
-                            <Button type="primary" htmlType="button" style={ { float: 'right' }}>
+                            <Button type="primary" onClick={ this.handleSaveButtonClick } htmlType="button" style={ { float: 'right' }}>
                                 { this.getSaveButtonDescription() }
                             </Button>
                         </Form.Item>
