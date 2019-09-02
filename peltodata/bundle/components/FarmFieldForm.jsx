@@ -35,10 +35,10 @@ export class FarmFieldForm extends React.Component {
         const localization = Oskari.getLocalization("peltodata");
         this.state = {
             localization,
-            date: moment(props.field.sowingDate),
+            date: moment(props.field.farmfieldSowingDate),
             id: props.field.farmfieldId,
             farmfieldDescription: props.field.id === -1 ? '' : props.field.farmfieldDescription,
-            cropType: props.field.cropType,
+            cropType: props.field.farmfieldCropType,
             dirty: false,
             onFarmfieldAdded: props.onFarmfieldAdded,
             onFarmfieldSaved: props.onFarmfieldSaved,
@@ -79,6 +79,8 @@ export class FarmFieldForm extends React.Component {
     async addNewField() {
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
+            farmfieldSowingDate: this.state.date,
+            farmfieldCropType: this.state.cropType,
         };
         try {
             const response = await axios.post('/peltodata/api/farms', data);
@@ -96,6 +98,8 @@ export class FarmFieldForm extends React.Component {
         console.log('updateField');
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
+            farmfieldSowingDate: this.state.date,
+            farmfieldCropType: this.state.cropType,
         };
         try {
             const response = await axios.post(`/peltodata/api/farms/${this.state.id}`, data);
@@ -179,6 +183,7 @@ export class FarmFieldForm extends React.Component {
                         </Form.Item>
                         <Form.Item wrapperCol={ noLabelWrapperCol } style={{ 'marginBottom': '12px' }}>
                             <Button type="primary" onClick={ this.handleSaveButtonClick } htmlType="button" style={ { float: 'right' }}>
+                                <Icon type="save" />
                                 { this.getSaveButtonDescription() }
                             </Button>
                         </Form.Item>
@@ -233,8 +238,7 @@ export class FarmFieldForm extends React.Component {
                                 okText={this.state.localization.confirm_delete_yes}
                                 okType="danger"
                                 overlayStyle={ datePickerPopupStyle }
-                                cancelText={this.state.localization.confirm_delete_cancel}
-                            >
+                                cancelText={this.state.localization.confirm_delete_cancel}>
                                 <Button type="danger" style={ { float: 'right' }}>
                                     <Icon type="delete" />
                                     { this.state.localization.delete_farmfield_button }

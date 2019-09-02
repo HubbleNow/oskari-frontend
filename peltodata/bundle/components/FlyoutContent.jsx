@@ -23,8 +23,8 @@ export class FlyoutContent extends React.Component {
             newFieldTemplate: {
                 farmfieldId: -1,
                 farmfieldDescription: localization.new_field,
-                sowingDate: new Date(),
-                cropType: '',
+                farmfieldCropType: 'oat',
+                farmfieldCropSowingDate: new Date(),
             },
             fields: [],
         };
@@ -38,6 +38,8 @@ export class FlyoutContent extends React.Component {
         const fields = this.state.fields;
         const field = fields.find(f => f.farmfieldId === farm.farmfieldId);
         field.farmfieldDescription = farm.farmfieldDescription;
+        field.farmfieldSowingDate = farm.farmfieldSowingDate;
+        field.farmfieldCropType = farm.farmfieldCropType;
         this.setState({ fields });
     }
     handleFarmfieldAdded(farm) {
