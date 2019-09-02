@@ -1,0 +1,24 @@
+.peltodata-flyout .ant-upload {
+    float: right;
+}
+
+.ant-btn-primary:hover, .ant-btn-primary:focus {
+    color: #fff !important;
+    background-color: #40a9ff !important;
+    border-color: #40a9ff !important;
+}
+.ant-btn:hover, .ant-btn:focus, .ant-btn:active, .ant-btn.active {
+    text-decoration: none !important;
+    background: #fff !important;
+}
+.ant-btn:hover, .ant-btn:focus {
+    color: #40a9ff !important;
+    background-color: #fff !important;
+    border-color: #40a9ff !important;
+}
+
+.ant-btn-danger:hover {
+    color: #fff !important;
+    background-color: #ff4d4f !important;
+    border-color: #ff4d4f !important;
+}

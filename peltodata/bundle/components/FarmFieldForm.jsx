@@ -6,6 +6,7 @@ import Input from 'antd/lib/input';
 import Form from 'antd/lib/form';
 import Select from 'antd/lib/select';
 const { Option } = Select;
+import Popconfirm from 'antd/lib/popconfirm';
 import Button from 'antd/lib/button';
 import Divider from 'antd/lib/divider';
 import DatePicker from 'antd/lib/date-picker';
@@ -24,6 +25,7 @@ import 'antd/lib/col/style/css';
 import 'antd/lib/row/style/css';
 import 'antd/lib/upload/style/css';
 import 'antd/lib/icon/style/css';
+import 'antd/lib/popconfirm/style/css';
 
 import './FarmFieldForm.css';
 
@@ -38,6 +40,9 @@ export class FarmFieldForm extends React.Component {
             farmfieldDescription: props.field.id === -1 ? '' : props.field.farmfieldDescription,
             cropType: props.field.cropType,
             dirty: false,
+            onFarmfieldAdded: props.onFarmfieldAdded,
+            onFarmfieldSaved: props.onFarmfieldSaved,
+            onFarmfieldDeleted: props.onFarmfieldDeleted,
             cropTypes: [{
                 value: 'oat',
                 text: localization.crop_types.oat,
@@ -57,6 +62,7 @@ export class FarmFieldForm extends React.Component {
         this.handleSowingDateChange = this.handleSowingDateChange.bind(this);
         this.handleCropTypeChange = this.handleCropTypeChange.bind(this);
         this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
+        this.handleOnDeleteConfirm = this.handleOnDeleteConfirm.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -76,22 +82,45 @@ export class FarmFieldForm extends React.Component {
         };
         try {
             const response = await axios.post('/peltodata/api/farms', data);
-            console.log(response);
+            if (this.state.onFarmfieldAdded != null) {
+                this.state.onFarmfieldAdded(response.data);
+            }
+
+            this.setState()
+            console.log('response', response);
         } catch (error) {
             console.log(error);
         }
     }
     async updateField() {
-        console.log(this);
+        console.log('updateField');
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
         };
         try {
             const response = await axios.post(`/peltodata/api/farms/${this.state.id}`, data);
+            console.log(this.state.handleFarmfieldSaved);
+            if (this.state.onFarmfieldSaved != null) {
+                this.state.onFarmfieldSaved(response.data);
+            }
+            console.log('response', response);
             console.log(response);
         } catch (error) {
             console.log(error);
         }
+    }
+    async deleteField() {
+        try {
+            await axios.delete(`/peltodata/api/farms/${this.state.id}`);
+            if (this.state.onFarmfieldDeleted != null) {
+                this.state.onFarmfieldDeleted(this.state.id);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    handleOnDeleteConfirm() {
+        this.deleteField();
     }
     handleSaveButtonClick() {
         if (this.state.id === -1) {
@@ -166,8 +195,8 @@ export class FarmFieldForm extends React.Component {
                         { this.state.localization.add_drone_data_help }
                         </Col>
                         <Col span={8}>
-                            <Upload accept=".tif">
-                                <Button type="primary" style={ { float: 'right' }}>
+                            <Upload accept=".tif" >
+                                <Button type="primary" >
                                     <Icon type="upload" />
                                     { this.state.localization.add_drone_data_button }
                                 </Button>
@@ -182,19 +211,39 @@ export class FarmFieldForm extends React.Component {
                             { this.state.localization.add_yield_data_help }
                         </Col>
                         <Col span={8}>
-                            <Upload accept=".zip">
-                                <Button type="primary" style={ { float: 'right' }}>
+                            <Upload accept=".zip" >
+                                <Button type="primary" >
                                     <Icon type="upload" />
                                     { this.state.localization.add_yield_data_button }
                                 </Button>
                             </Upload>
                         </Col>
                     </Row>
+                    <Row>
+                        <Divider style={{ margin: 12 }}></Divider>
+                    </Row>
+                    <Row>
+                        <Col span={16}>
+                            { this.state.localization.delete_farmfield_help }
+                        </Col>
+                        <Col span={8}>
+                            <Popconfirm
+                                title={this.state.localization.confirm_delete_text}
+                                onConfirm={this.handleOnDeleteConfirm }
+                                okText={this.state.localization.confirm_delete_yes}
+                                okType="danger"
+                                overlayStyle={ datePickerPopupStyle }
+                                cancelText={this.state.localization.confirm_delete_cancel}
+                            >
+                                <Button type="danger" style={ { float: 'right' }}>
+                                    <Icon type="delete" />
+                                    { this.state.localization.delete_farmfield_button }
+                                </Button>
+                            </Popconfirm>
+                        </Col>
+                    </Row>
                 </div>
             }
         </div>
-    }
-    handleSubmit(e) {
-        console.log('submit', e);
     }
 }

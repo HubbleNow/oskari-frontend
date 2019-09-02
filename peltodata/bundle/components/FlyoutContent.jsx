@@ -3,6 +3,7 @@ import axios from 'axios';
 import PropTypes from 'prop-types';
 
 import Collapse from 'antd/lib/collapse';
+
 const { Panel } = Collapse;
 
 import { FarmFieldForm } from './FarmFieldForm';
@@ -18,15 +19,51 @@ export class FlyoutContent extends React.Component {
         this.loadFields();
 
         this.state = {
+            activePanel: null,
             newFieldTemplate: {
-                id: -1,
+                farmfieldId: -1,
                 farmfieldDescription: localization.new_field,
                 sowingDate: new Date(),
-                cropType: ''
+                cropType: '',
             },
-            fields: []
+            fields: [],
         };
+        this.handleFarmfieldAdded = this.handleFarmfieldAdded.bind(this);
+        this.handleFarmfieldSaved = this.handleFarmfieldSaved.bind(this);
+        this.handleFarmfieldDeleted = this.handleFarmfieldDeleted.bind(this);
+        this.handleActivePanelChange = this.handleActivePanelChange.bind(this);
     }
+
+    handleFarmfieldSaved(farm) {
+        const fields = this.state.fields;
+        const field = fields.find(f => f.farmfieldId === farm.farmfieldId);
+        field.farmfieldDescription = farm.farmfieldDescription;
+        this.setState({ fields });
+    }
+    handleFarmfieldAdded(farm) {
+        const fields = this.state.fields;
+        const field = fields.find(f => f.farmfieldId === -1);
+        field.farmfieldDescription = farm.farmfieldDescription;
+        field.farmfieldId = farm.farmfieldId;
+
+        const activePanels = this.state.activePanel;
+        const activePanel = activePanels.filter(a => a !== "-1");
+        activePanel.push(`${farm.farmfieldId}`);
+
+        this.setState({ fields: []});
+        this.loadFields().then(() => {
+            this.setState({ activePanel });
+        });
+    }
+
+    handleActivePanelChange(panels) {
+        this.setState({ activePanel: panels });
+    }
+
+    handleFarmfieldDeleted() {
+        this.loadFields();
+    }
+
     async loadFields() {
         const fields = [];
         try {
@@ -36,24 +73,28 @@ export class FlyoutContent extends React.Component {
             console.log(error);
         }
 
-        fields.push(this.state.newFieldTemplate);
+        fields.push(Object.assign({}, this.state.newFieldTemplate));
         this.setState({
             fields,
         })
     }
+
     render() {
         const fields = [];
         this.state.fields.forEach(field => {
             fields.push(
-                <Panel header={ field.farmfieldDescription } key={ field.farmfieldId }>
-                    <FarmFieldForm field={ field }></FarmFieldForm>
-                </Panel>
+                <Panel header={field.farmfieldDescription} key={field.farmfieldId}>
+                    <FarmFieldForm onFarmfieldAdded={this.handleFarmfieldAdded}
+                                   onFarmfieldSaved={this.handleFarmfieldSaved}
+                                   onFarmfieldDeleted={this.handleFarmfieldDeleted}
+                                   field={field}/>
+                </Panel>,
             )
         });
 
         return <div>
-            <Collapse>
-                { fields }
+            <Collapse activeKey={this.state.activePanel} onChange={this.handleActivePanelChange}>
+                {fields}
             </Collapse>
         </div>
     }

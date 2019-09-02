@@ -11,6 +11,8 @@ export class PeltodataFlyout extends ExtraFlyout {
         this.on('show', () => {
             if (!this.getElement()) {
                 this.createUi();
+            } else {
+                this.update();
             }
         });
         this.on('hide', () => {
