@@ -23,6 +23,18 @@ Oskari.registerLocalization(
         confirm_delete_text: 'Are you sure you want to delete this field',
         confirm_delete_yes: 'Delete',
         confirm_delete_cancel: 'Cancel',
+        field_added: 'Field added',
+        field_updated: 'Field updated',
+        field_deleted: 'Field deleted',
+        layer_creation_started: 'Crop estimation layer creation started. It might take some time to finish. After done, it will be visible in \'Layers\' section.',
+        yield_layer_creation_started: 'Yield layer creation started. It might take some time to finish. After done, it will be visible in \'Layers\' section.',
+        errors: {
+            failed_to_add_new_field: 'Failed to add new field',
+            failed_to_update_field: 'Failed to update field',
+            failed_to_delete_field: 'Failed to delete field',
+            failed_to_create_layers: 'Failed to create crop estimation layers',
+            failed_to_create_yield_layer: 'Failed to create yield layer',
+        },
         crop_types: {
             wheat: 'Wheat',
             oat: 'Oat',

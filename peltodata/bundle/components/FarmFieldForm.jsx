@@ -14,6 +14,7 @@ import Col from 'antd/lib/col';
 import Row from 'antd/lib/row';
 import Upload from 'antd/lib/upload';
 import Icon  from 'antd/lib/icon';
+import message from 'antd/lib/message';
 
 import 'antd/lib/form/style/css';
 import 'antd/lib/input/style/css';
@@ -26,6 +27,7 @@ import 'antd/lib/row/style/css';
 import 'antd/lib/upload/style/css';
 import 'antd/lib/icon/style/css';
 import 'antd/lib/popconfirm/style/css';
+import 'antd/lib/message/style/css';
 
 import './FarmFieldForm.css';
 
@@ -65,6 +67,8 @@ export class FarmFieldForm extends React.Component {
         this.handleOnDeleteConfirm = this.handleOnDeleteConfirm.bind(this);
         this.getFileUploadPathForCropEstimation = this.getFileUploadPathForCropEstimation.bind(this);
         this.cropEstimationUploaded = this.cropEstimationUploaded.bind(this);
+        this.yieldDataUploaded = this.yieldDataUploaded.bind(this);
+        this.getFileUploadPathForYieldData = this.getFileUploadPathForYieldData.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -90,14 +94,13 @@ export class FarmFieldForm extends React.Component {
                 this.state.onFarmfieldAdded(response.data);
             }
 
-            this.setState()
-            console.log('response', response);
+            message.success(this.state.localization.field_added);
         } catch (error) {
+            message.error(this.state.localization.errors.failed_to_add_new_field);
             console.log(error);
         }
     }
     async updateField() {
-        console.log('updateField');
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
             farmfieldSowingDate: this.state.date,
@@ -105,13 +108,12 @@ export class FarmFieldForm extends React.Component {
         };
         try {
             const response = await axios.post(`/peltodata/api/farms/${this.state.id}`, data);
-            console.log(this.state.handleFarmfieldSaved);
             if (this.state.onFarmfieldSaved != null) {
                 this.state.onFarmfieldSaved(response.data);
             }
-            console.log('response', response);
-            console.log(response);
+            message.success(this.state.localization.field_updated);
         } catch (error) {
+            message.error(this.state.localization.errors.failed_to_update_field);
             console.log(error);
         }
     }
@@ -121,7 +123,9 @@ export class FarmFieldForm extends React.Component {
             if (this.state.onFarmfieldDeleted != null) {
                 this.state.onFarmfieldDeleted(this.state.id);
             }
+            message.success(this.state.localization.field_deleted);
         } catch (error) {
+            message.error(this.state.localization.errors.failed_to_delete_field);
             console.log(error);
         }
     }
@@ -163,7 +167,29 @@ export class FarmFieldForm extends React.Component {
             const farmfieldId = this.state.id;
             try {
                 await Promise.all([this.addCropEstimationLayer(farmfieldId, filePath), this.addCropEstimationRawLayer(farmfieldId, filePath)])
+                message.success(this.state.localization.layer_creation_started);
             } catch (error) {
+                message.error(this.state.localization.errors.failed_to_create_layers);
+                console.log(error);
+            }
+        }
+    }
+    getFileUploadPathForYieldData() {
+        return `/peltodata/api/farms/${this.state.id}/file?type=yield_raw`
+    }
+    addYieldLayer(farmfieldId, filePath) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=yield`)
+    }
+    async yieldDataUploaded(e) {
+        const file = e.file;
+        if (file.status === 'done') {
+            const filePath = file.response;
+            const farmfieldId = this.state.id;
+            try {
+                await this.addYieldLayer(farmfieldId, filePath);
+                message.success(this.state.localization.yield_layer_creation_started);
+            } catch (error) {
+                message.error(this.state.localization.errors.failed_to_create_yield_layer);
                 console.log(error);
             }
         }
@@ -241,7 +267,9 @@ export class FarmFieldForm extends React.Component {
                             { this.state.localization.add_yield_data_help }
                         </Col>
                         <Col span={8}>
-                            <Upload accept=".zip" >
+                            <Upload accept=".zip"
+                                    onChange={ this.yieldDataUploaded }
+                                    action={ this.getFileUploadPathForYieldData }>
                                 <Button type="primary" >
                                     <Icon type="upload" />
                                     { this.state.localization.add_yield_data_button }

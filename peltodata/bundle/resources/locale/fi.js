@@ -23,6 +23,18 @@ Oskari.registerLocalization(
         confirm_delete_text: 'Haluatko varmasti poistaa pellon?',
         confirm_delete_yes: 'Poista',
         confirm_delete_cancel: 'Peruuta',
+        field_added: 'Pelto lisätty',
+        field_updated: 'Pelto päivitetty',
+        field_deleted: 'Pelto poistettu',
+        layer_creation_started: 'Satoennustetasojen muodostaminen aloitettu. Muodostus saattaa kestää jonkin aikaa. Kun tasot on muodostettu, ne löytyvät \'Tasot\' valikon takaa',
+        yield_layer_creation_started: 'Satokartan tasojen muodostaminen aloitettu. Muodostus saattaa kestää jonkin aikaa. Kun tasot on muodostettu, ne löytyvät \'Tasot\' valikon takaa',
+        errors: {
+            failed_to_add_new_field: 'Pellon lisäys epäonnistui',
+            failed_to_update_field: 'Pellon päivitys epäonnistui',
+            failed_to_delete_field: 'Pellon poisto epäonnistui',
+            failed_to_create_layers: 'Satoennusteen tasojen luonti epäonnistui',
+            failed_to_create_yield_layer: 'Satotietojen tason luonti epäonnistui',
+        },
         crop_types: {
             wheat: 'Vehnä',
             oat: 'Kaura',

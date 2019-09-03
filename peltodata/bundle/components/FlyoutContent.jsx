@@ -1,6 +1,5 @@
 import React from 'react';
 import axios from 'axios';
-import PropTypes from 'prop-types';
 
 import Collapse from 'antd/lib/collapse';
 
@@ -9,7 +8,6 @@ const { Panel } = Collapse;
 import { FarmFieldForm } from './FarmFieldForm';
 
 import 'antd/lib/collapse/style/css';
-
 
 export class FlyoutContent extends React.Component {
     constructor(props) {

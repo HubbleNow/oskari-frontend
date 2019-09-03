@@ -26,3 +26,7 @@
 .peltodata-flyout .ant-upload-list-item-done {
     display: none;
 }
+
+.ant-message {
+    z-index: 4000000;
+}
