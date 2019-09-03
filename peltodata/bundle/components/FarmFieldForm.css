@@ -22,3 +22,7 @@
     background-color: #ff4d4f !important;
     border-color: #ff4d4f !important;
 }
+
+.peltodata-flyout .ant-upload-list-item-done {
+    display: none;
+}

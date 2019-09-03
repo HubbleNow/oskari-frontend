@@ -63,6 +63,8 @@ export class FarmFieldForm extends React.Component {
         this.handleCropTypeChange = this.handleCropTypeChange.bind(this);
         this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
         this.handleOnDeleteConfirm = this.handleOnDeleteConfirm.bind(this);
+        this.getFileUploadPathForCropEstimation = this.getFileUploadPathForCropEstimation.bind(this);
+        this.cropEstimationUploaded = this.cropEstimationUploaded.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -145,6 +147,27 @@ export class FarmFieldForm extends React.Component {
             return this.state.localization.save_field;
         }
     }
+    getFileUploadPathForCropEstimation() {
+        return `/peltodata/api/farms/${this.state.id}/file?type=crop_estimation_raw`
+    }
+    addCropEstimationLayer(farmfieldId, filePath) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation`)
+    }
+    addCropEstimationRawLayer(farmfieldId, filePath) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation_raw`)
+    }
+    async cropEstimationUploaded(e) {
+        const file = e.file;
+        if (file.status === 'done') {
+            const filePath = file.response;
+            const farmfieldId = this.state.id;
+            try {
+                await Promise.all([this.addCropEstimationLayer(farmfieldId, filePath), this.addCropEstimationRawLayer(farmfieldId, filePath)])
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
     render() {
         const formItemLayout = {
             labelCol: {
@@ -200,7 +223,9 @@ export class FarmFieldForm extends React.Component {
                         { this.state.localization.add_drone_data_help }
                         </Col>
                         <Col span={8}>
-                            <Upload accept=".tif" >
+                            <Upload accept=".tif"
+                                    onChange={ this.cropEstimationUploaded }
+                                    action={ this.getFileUploadPathForCropEstimation }>
                                 <Button type="primary" >
                                     <Icon type="upload" />
                                     { this.state.localization.add_drone_data_button }
