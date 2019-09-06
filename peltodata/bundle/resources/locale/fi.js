@@ -12,6 +12,7 @@ Oskari.registerLocalization(
         save_field: "Tallenna pellon tiedot",
         add_new_field: 'Lisää uusi pelto',
         field_description: "Kuvaus",
+        field_id: "Peltonumero",
         sowing_date: "Kylvöpäivä",
         crop_type: 'Viljelyskasvi',
         add_drone_data_button: 'Lisää drone kuva',

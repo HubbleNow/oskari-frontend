@@ -39,6 +39,7 @@ export class FarmFieldForm extends React.Component {
             localization,
             date: moment(props.field.farmfieldSowingDate),
             id: props.field.farmfieldId,
+            farmfieldIdString: props.field.farmfieldIdString,
             farmfieldDescription: props.field.id === -1 ? '' : props.field.farmfieldDescription,
             cropType: props.field.farmfieldCropType,
             dirty: false,
@@ -61,6 +62,7 @@ export class FarmFieldForm extends React.Component {
         };
 
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.handleIdStringChange = this.handleIdStringChange.bind(this);
         this.handleSowingDateChange = this.handleSowingDateChange.bind(this);
         this.handleCropTypeChange = this.handleCropTypeChange.bind(this);
         this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
@@ -72,6 +74,9 @@ export class FarmFieldForm extends React.Component {
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
+    }
+    handleIdStringChange(event) {
+        this.setState({ farmfieldIdString: event.target.value, dirty: true });
     }
     handleSowingDateChange(date) {
         this.setState({ date, dirty: true });
@@ -85,6 +90,7 @@ export class FarmFieldForm extends React.Component {
     async addNewField() {
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
+            farmfieldId: this.state.farmfieldIdString,
             farmfieldSowingDate: this.state.date,
             farmfieldCropType: this.state.cropType,
         };
@@ -103,6 +109,7 @@ export class FarmFieldForm extends React.Component {
     async updateField() {
         const data = {
             farmfieldDescription: this.state.farmfieldDescription,
+            farmfieldId: this.state.farmfieldIdString,
             farmfieldSowingDate: this.state.date,
             farmfieldCropType: this.state.cropType,
         };
@@ -220,6 +227,9 @@ export class FarmFieldForm extends React.Component {
                     <Form {...formItemLayout} onSubmit={this.handleSubmit}>
                         <Form.Item label={ this.state.localization.field_description } style={{ 'marginBottom': '12px' }}>
                             <Input value={ this.state.farmfieldDescription } onChange={ this.handleDescriptionChange }></Input>
+                        </Form.Item>
+                        <Form.Item label={ this.state.localization.field_id } style={{ 'marginBottom': '12px' }}>
+                            <Input value={ this.state.farmfieldIdString } onChange={ this.handleIdStringChange }></Input>
                         </Form.Item>
                         <Form.Item label={ this.state.localization.sowing_date } style={{ 'marginBottom': '12px' }}>
                             <DatePicker popupStyle={datePickerPopupStyle}
