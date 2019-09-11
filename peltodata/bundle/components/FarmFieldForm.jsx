@@ -152,7 +152,7 @@ export class FarmFieldForm extends React.Component {
         }
     }
     getFileUploadPathForCropEstimation() {
-        return `/peltodata/api/farms/${this.state.id}/file?type=crop_estimation_raw`
+        return `/peltodata/api/farms/${this.state.id}/file?type=crop_estimation_original`
     }
     addCropEstimationLayer(farmfieldId, filePath) {
         return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation`)

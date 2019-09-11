@@ -15,6 +15,7 @@ export class FlyoutContent extends React.Component {
         const localization = Oskari.getLocalization("peltodata");
 
         this.loadFields();
+        this.loadExecutions();
 
         this.state = {
             activePanel: null,
@@ -62,6 +63,17 @@ export class FlyoutContent extends React.Component {
 
     handleFarmfieldDeleted() {
         this.loadFields();
+    }
+
+    async loadExecutions() {
+        const fields = [];
+        try {
+            const response = await axios.get("peltodata/api/farms/executions");
+            response.data.forEach(d => fields.push(d));
+            console.log(fields);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async loadFields() {
