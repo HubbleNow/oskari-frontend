@@ -12,6 +12,7 @@ Oskari.registerLocalization(
         save_field: "Save field details",
         add_new_field: 'Add new field',
         field_description: "Description",
+        field_id: "ID",
         sowing_date: "Sowing date",
         crop_type: 'Crop type',
         add_drone_data_button: 'Add image',

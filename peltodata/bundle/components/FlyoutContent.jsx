@@ -37,6 +37,7 @@ export class FlyoutContent extends React.Component {
         const fields = this.state.fields;
         const field = fields.find(f => f.farmfieldId === farm.farmfieldId);
         field.farmfieldDescription = farm.farmfieldDescription;
+        field.farmfieldIdString = farm.farmfieldIdString;
         field.farmfieldSowingDate = farm.farmfieldSowingDate;
         field.farmfieldCropType = farm.farmfieldCropType;
         this.setState({ fields });
@@ -45,6 +46,7 @@ export class FlyoutContent extends React.Component {
         const fields = this.state.fields;
         const field = fields.find(f => f.farmfieldId === -1);
         field.farmfieldDescription = farm.farmfieldDescription;
+        field.farmfieldIdString = farm.farmfieldIdString;
         field.farmfieldId = farm.farmfieldId;
 
         const activePanels = this.state.activePanel;
