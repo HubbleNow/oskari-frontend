@@ -27,6 +27,12 @@
     display: none;
 }
 
-.ant-message {
+.ant-message,
+.ant-modal-wrap,
+.ant-modal-mask {
     z-index: 4000000;
+}
+
+.ant-calendar-picker-container {
+  z-index: 4000001;
 }

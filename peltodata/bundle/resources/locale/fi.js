@@ -16,7 +16,13 @@ Oskari.registerLocalization(
         sowing_date: "Kylvöpäivä",
         crop_type: 'Viljelyskasvi',
         add_drone_data_button: 'Lisää drone kuva',
-        add_drone_data_help: 'Lisää uusi dronekuva (TIF tiedosto). Dronekuvasta muodostetaan satoennuste.',
+        add_drone_data_help: 'Lisää uusi dronekuva (TIF tiedosto). Vain RGB tuettu. Dronekuvasta muodostetaan satoennuste.',
+        add_drone_date_title: 'Anna kuvauspäivämäärä dronekuvalle',
+        start_processing_drone_image: 'Aloita satoennustetason luonti',
+        waiting_for_upload_to_be_completed: 'Odotetaan latauksen valmistumista',
+        drone_date_help: 'Satoennustetason luonti vaatii kuvauspäivämäärän. Kun päivämäärä on syötetty ja kuva ladattu, järjestelmä voi jatkaa satoennustetason luontiin',
+        drone_date_warning: 'Älä siirry pois sivulta ennen kuin kuva on ladattu kokonaan.',
+        give_drone_date: 'Anna kuvauspäivämäärä',
         add_yield_data_button: 'Lisää sato tiedot',
         add_yield_data_help: 'Lisää satokartoittimen datapaketti. Satodata on Trimblen satokartoittimen tuottama ZIP tiedosto',
         delete_farmfield_help: 'Poista pelto. Kaikki pellon tiedot ja pellon tasot poistetaan järjestelmästä.',
@@ -41,7 +47,11 @@ Oskari.registerLocalization(
             oat: 'Kaura',
             barley: 'Ohra',
             rye: 'Ruis',
-        }
+        },
+        cancel: 'Peruuta',
+        select_date: 'Valitse päivämäärä',
+        uploading_image: 'Kuvan lataus',
+        attention: 'Huomio',
     }
 });
 

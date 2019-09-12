@@ -16,7 +16,12 @@ Oskari.registerLocalization(
         sowing_date: "Sowing date",
         crop_type: 'Crop type',
         add_drone_data_button: 'Add image',
-        add_drone_data_help: 'Add new drone image for yield prediction (TIF file)',
+        add_drone_data_help: 'Add new drone image for yield prediction (TIF file). Only RGB is supported.',
+        add_drone_date_title: 'Add date for the drone image',
+        start_processing_drone_image: 'Start processing drone image',
+        waiting_for_upload_to_be_completed: 'Waiting for upload to be completed',
+        drone_date_help: 'Crop estimation layer creation requires drone image date. Once the drone image date has been filled and image uploaded the system can continue to crop estimation layer creation.',
+        give_drone_date: 'Give date',
         add_yield_data_button: 'Add yield data',
         add_yield_data_help: 'Add yield data file (Trimble ZIP package)',
         delete_farmfield_help: 'Delete field. All layers and data related to that field will be deleted.',
@@ -41,6 +46,10 @@ Oskari.registerLocalization(
             oat: 'Oat',
             barley: 'Barley',
             rye: 'Rye',
-        }
+        },
+        cancel: 'Cancel',
+        select_date: 'Select date',
+        uploading_image: 'Image uploading status',
+        attention: 'Attention',
     }
 });
