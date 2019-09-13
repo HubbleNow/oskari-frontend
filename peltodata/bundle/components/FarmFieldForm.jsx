@@ -25,6 +25,26 @@ import 'antd/lib/card/style/css';
 
 import './FarmFieldForm.css';
 
+class FieldExecutionStatus extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const execution = this.props.execution;
+    return <Row>
+        <Col span={24}>
+          {execution.state === -10 && <Spin indicator={<Icon type="exclamation-circle" style={{ fontSize: 14, color: '#ffa940', marginRight: '7px' }} />} />}
+          {execution.state === 0 && <Spin indicator={<Icon type="loading" style={{ fontSize: 14, marginRight: '7px' }} spin />} />}
+          {execution.state === 10 && <Spin indicator={<Icon type="check-circle" style={{ fontSize: 14, marginRight: '7px', color: '#73d13d' }} />} />}
+          <span style={{fontSize: '12px', paddingTop: '2px'}}>
+            {execution.state === -10 && <strong>{ this.props.localization.in_error_state }! </strong>}{this.props.localization[execution.outputType]} ({this.props.localization.started}: {moment(execution.executionStartedAt).format('HH:mm DD.MM.YY')})
+          </span>
+        </Col>
+      </Row>
+  }
+}
+
 export class FarmFieldForm extends React.Component {
     constructor(props) {
         super(props);
@@ -391,23 +411,14 @@ export class FarmFieldForm extends React.Component {
                             </Upload>
                         </Col>
                     </Row>
-                    {this.state.fieldExecutionsInProgress.length > 0 &&
+                    {this.fieldExecutionsInProgressForType('crop_estimation')  &&
                       <Row>
                         <Col span={24} style={{paddingTop: '15px'}}>
                           <Card bodyStyle={{padding: '6px 10px'}} style={{background: '#e6f7ff', borderColor: '#bae7ff'}}>
                             {this.state.fieldExecutionsInProgress.map(execution => {
                               if (!execution.outputType.includes('crop_estimation')) return;
                               return (
-                                <Row key={execution.id}>
-                                  <Col span={24}>
-                                    {execution.state === -10 && <Spin indicator={<Icon type="exclamation-circle" style={{ fontSize: 14, color: '#ffa940', marginRight: '7px' }} />} />}
-                                    {execution.state === 0 && <Spin indicator={<Icon type="loading" style={{ fontSize: 14, marginRight: '7px' }} spin />} />}
-                                    {execution.state === 10 && <Spin indicator={<Icon type="check-circle" style={{ fontSize: 14, marginRight: '7px', color: '#73d13d' }} />} />}
-                                    <span style={{fontSize: '12px', paddingTop: '2px'}}>
-                                      {execution.state === -10 && <strong>{ this.state.localization.in_error_state }! </strong>}{this.state.localization[execution.outputType]} ({this.state.localization.started}: {moment(execution.executionStartedAt).format('HH:mm DD.MM.YY')})
-                                    </span>
-                                  </Col>
-                                </Row>
+                                <FieldExecutionStatus execution={execution} key={execution.id} localization={this.state.localization} />
                               )
                             })}
                           </Card>
@@ -439,16 +450,7 @@ export class FarmFieldForm extends React.Component {
                           {this.state.fieldExecutionsInProgress.map(execution => {
                             if (!execution.outputType.includes('yield')) return;
                             return (
-                              <Row key={execution.id}>
-                                <Col span={24}>
-                                  {execution.state === -10 && <Spin indicator={<Icon type="exclamation-circle" style={{ fontSize: 14, color: '#ffa940', marginRight: '7px' }} />} />}
-                                  {execution.state === 0 && <Spin indicator={<Icon type="loading" style={{ fontSize: 14, marginRight: '7px' }} spin />} />}
-                                  {execution.state === 10 && <Spin indicator={<Icon type="check-circle" style={{ fontSize: 14, marginRight: '7px', color: '#73d13d' }} />} />}
-                                  <span style={{fontSize: '12px', paddingTop: '2px'}}>
-                                        {execution.state === -10 && <strong>{ this.state.localization.in_error_state }! </strong>}{this.state.localization[execution.outputType]} ({this.state.localization.started}: {moment(execution.executionStartedAt).format('HH:mm DD.MM.YY')})
-                                      </span>
-                                </Col>
-                              </Row>
+                              <FieldExecutionStatus execution={execution} key={execution.id} localization={this.state.localization} />
                             )
                           })}
                         </Card>
