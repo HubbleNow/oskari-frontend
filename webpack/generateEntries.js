@@ -7,6 +7,10 @@ const { existsSync } = require('fs');
 module.exports = function generateEntries (appsetupPaths, isProd, context) {
     const entries = {};
     const plugins = [
+        // This ignoreplugin thing is probably copypasted from internet and does not work with custom oskari library folder.
+        // Should consider validity of whole libraries folder
+        // For now, ignore specifically libraries/moment/2.10.6
+        // https://github.com/moment/moment/issues/4216
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$|2\.10\.6$/

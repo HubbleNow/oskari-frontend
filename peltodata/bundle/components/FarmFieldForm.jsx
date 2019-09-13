@@ -175,11 +175,17 @@ export class FarmFieldForm extends React.Component {
     getFileUploadPathForCropEstimation() {
         return `/peltodata/api/farms/${this.state.id}/file?type=crop_estimation_original`
     }
-    addCropEstimationLayer(farmfieldId, filePath) {
-        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation`)
+    updateFileDate(farmfieldId, farmfieldFileId, date) {
+        const data = {
+            date,
+        };
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/file/${farmfieldFileId}`, data);
     }
-    addCropEstimationRawLayer(farmfieldId, filePath) {
-        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation_raw`)
+    addCropEstimationLayer(farmfieldId, farmfieldFileId) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?file_id=${farmfieldFileId}&type=crop_estimation`)
+    }
+    addCropEstimationRawLayer(farmfieldId, farmfieldFileId) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?file_id=${farmfieldFileId}&type=crop_estimation_raw`)
     }
     cropEstimationBeingUploaded(e) {
         if (this.state.droneFileUploadCancelled) {
@@ -231,10 +237,11 @@ export class FarmFieldForm extends React.Component {
         this.setState({showDroneDateDialog: false});
         const file = this.state.file;
         if (file.status === 'done') {
-          const filePath = file.response;
+          const farmfieldFile = file.response;
           const farmfieldId = this.state.id;
           try {
-            await Promise.all([this.addCropEstimationLayer(farmfieldId, filePath), this.addCropEstimationRawLayer(farmfieldId, filePath)])
+            await this.updateFileDate(farmfieldId, farmfieldFile.id, this.state.date);
+            await Promise.all([this.addCropEstimationLayer(farmfieldId, farmfieldFile.id), this.addCropEstimationRawLayer(farmfieldId, farmfieldFile.id)])
             this.resetDroneDateDialog();
             message.success(this.state.localization.layer_creation_started);
           } catch (error) {
@@ -247,8 +254,8 @@ export class FarmFieldForm extends React.Component {
     getFileUploadPathForYieldData() {
         return `/peltodata/api/farms/${this.state.id}/file?type=yield_raw`
     }
-    addYieldLayer(farmfieldId, filePath) {
-        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=yield`)
+    addYieldLayer(farmfieldId, farmfieldFileId) {
+        return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?file_id=${farmfieldFileId}&type=yield`)
     }
     async yieldDataUploaded(e) {
         const file = e.file;
@@ -256,7 +263,8 @@ export class FarmFieldForm extends React.Component {
             const filePath = file.response;
             const farmfieldId = this.state.id;
             try {
-                await this.addYieldLayer(farmfieldId, filePath);
+                await this.updateFileDate(farmfieldId, farmfieldFile.id, this.state.date);
+                await this.addYieldLayer(farmfieldId, farmfieldFile.id);
                 message.success(this.state.localization.yield_layer_creation_started);
             } catch (error) {
                 message.error(this.state.localization.errors.failed_to_create_yield_layer);
