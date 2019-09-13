@@ -2,19 +2,8 @@ import React from 'react';
 import axios from 'axios';
 import moment from 'moment';
 
-import Input from 'antd/lib/input';
-import Form from 'antd/lib/form';
-import Select from 'antd/lib/select';
+import { Input, Form, Select, Popconfirm, Button, Divider, DatePicker, Col, Row, Upload, Icon, message, Modal, Progress } from 'antd';
 const { Option } = Select;
-import Popconfirm from 'antd/lib/popconfirm';
-import Button from 'antd/lib/button';
-import Divider from 'antd/lib/divider';
-import DatePicker from 'antd/lib/date-picker';
-import Col from 'antd/lib/col';
-import Row from 'antd/lib/row';
-import Upload from 'antd/lib/upload';
-import Icon  from 'antd/lib/icon';
-import message from 'antd/lib/message';
 
 import 'antd/lib/form/style/css';
 import 'antd/lib/input/style/css';
@@ -28,6 +17,7 @@ import 'antd/lib/upload/style/css';
 import 'antd/lib/icon/style/css';
 import 'antd/lib/popconfirm/style/css';
 import 'antd/lib/message/style/css';
+import 'antd/lib/modal/style/css';
 
 import './FarmFieldForm.css';
 
@@ -58,8 +48,17 @@ export class FarmFieldForm extends React.Component {
             }, {
                 value: 'barley',
                 text: localization.crop_types.barley,
-            }]
+            }],
+            showDroneDateDialog: false,
+            file: false,
+            droneFileProgress: 0,
+            droneFileUploaded: false,
+            droneDate: null,
+            droneDateDialogAccepted: false,
+            droneFileUploadCancelled: false,
         };
+
+        this.droneUploadRef = React.createRef();
 
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.handleIdStringChange = this.handleIdStringChange.bind(this);
@@ -68,9 +67,14 @@ export class FarmFieldForm extends React.Component {
         this.handleSaveButtonClick = this.handleSaveButtonClick.bind(this);
         this.handleOnDeleteConfirm = this.handleOnDeleteConfirm.bind(this);
         this.getFileUploadPathForCropEstimation = this.getFileUploadPathForCropEstimation.bind(this);
-        this.cropEstimationUploaded = this.cropEstimationUploaded.bind(this);
+        this.cropEstimationBeingUploaded = this.cropEstimationBeingUploaded.bind(this);
         this.yieldDataUploaded = this.yieldDataUploaded.bind(this);
         this.getFileUploadPathForYieldData = this.getFileUploadPathForYieldData.bind(this);
+        this.handleDroneDateOk = this.handleDroneDateOk.bind(this);
+        this.handleDroneDateCancel = this.handleDroneDateCancel.bind(this);
+        this.startProcessingCropEstimation = this.startProcessingCropEstimation.bind(this);
+        this.handleDroneDateChange = this.handleDroneDateChange.bind(this);
+        this.resetDroneDateDialog = this.resetDroneDateDialog.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -80,6 +84,9 @@ export class FarmFieldForm extends React.Component {
     }
     handleSowingDateChange(date) {
         this.setState({ date, dirty: true });
+    }
+    handleDroneDateChange(droneDate) {
+        this.setState({ droneDate });
     }
     handleCropTypeChange(cropType) {
         this.setState({
@@ -167,18 +174,66 @@ export class FarmFieldForm extends React.Component {
     addCropEstimationRawLayer(farmfieldId, filePath) {
         return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=crop_estimation_raw`)
     }
-    async cropEstimationUploaded(e) {
-        const file = e.file;
-        if (file.status === 'done') {
-            const filePath = file.response;
-            const farmfieldId = this.state.id;
-            try {
-                await Promise.all([this.addCropEstimationLayer(farmfieldId, filePath), this.addCropEstimationRawLayer(farmfieldId, filePath)])
-                message.success(this.state.localization.layer_creation_started);
-            } catch (error) {
-                message.error(this.state.localization.errors.failed_to_create_layers);
-                console.log(error);
+    cropEstimationBeingUploaded(e) {
+        if (this.state.droneFileUploadCancelled) {
+            if (e.file && e.file.status === "uploading") {
+                this.droneUploadRef.current.handleManualRemove(e.file);
+                return;
+            } else if (e.file && (e.file.status === "done" || e.file.status === "removed")) {
+                this.setState({droneFileUploadCancelled: false}, () => {
+                 this.resetDroneDateDialog();
+                });
+                return;
             }
+            return;
+        };
+
+        let showDroneDateDialog = this.state.showDroneDateDialog;
+        let droneFileUploaded = this.state.droneFileUploaded;
+        let droneFileProgress = 0;
+        let file = false;
+
+        if (!showDroneDateDialog && !droneFileUploaded) {
+          showDroneDateDialog = true;
+        }
+
+        if (e.file && e.file.status === "uploading") {
+          if (e.event) {
+            droneFileProgress = Math.ceil(e.event.percent);
+          }
+        }
+        if (e.file && e.file.status === "done") {
+          droneFileProgress = 100;
+          droneFileUploaded = true;
+          file = e.file;
+        }
+
+        this.setState({
+          showDroneDateDialog: showDroneDateDialog,
+          droneFileUploaded: droneFileUploaded,
+          droneFileProgress: droneFileProgress,
+          file: file,
+        });
+
+        if (this.state.droneDateDialogAccepted && droneFileUploaded && this.state.droneDate) {
+          this.startProcessingCropEstimation();
+        }
+    }
+    async startProcessingCropEstimation() {
+        this.setState({showDroneDateDialog: false});
+        const file = this.state.file;
+        if (file.status === 'done') {
+          const filePath = file.response;
+          const farmfieldId = this.state.id;
+          try {
+            await Promise.all([this.addCropEstimationLayer(farmfieldId, filePath), this.addCropEstimationRawLayer(farmfieldId, filePath)])
+            this.resetDroneDateDialog();
+            message.success(this.state.localization.layer_creation_started);
+          } catch (error) {
+            this.resetDroneDateDialog();
+            message.error(this.state.localization.errors.failed_to_create_layers);
+            console.log(error);
+          }
         }
     }
     getFileUploadPathForYieldData() {
@@ -187,8 +242,8 @@ export class FarmFieldForm extends React.Component {
     addYieldLayer(farmfieldId, filePath) {
         return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=yield`)
     }
-    async yieldDataUploaded(e) {
-        const file = e.file;
+    async yieldDataUploaded() {
+        const file = this.file;
         if (file.status === 'done') {
             const filePath = file.response;
             const farmfieldId = this.state.id;
@@ -200,6 +255,26 @@ export class FarmFieldForm extends React.Component {
                 console.log(error);
             }
         }
+    }
+    handleDroneDateOk() {
+        if (this.state.droneFileUploaded && this.state.droneDate) {
+          this.startProcessingCropEstimation();
+        } else {
+          this.setState({droneDateDialogAccepted: true});
+        }
+    }
+    handleDroneDateCancel() {
+        this.setState({showDroneDateDialog: false, droneFileUploadCancelled: true});
+        this.resetDroneDateDialog();
+    }
+    resetDroneDateDialog() {
+      this.setState({
+        file: false,
+        droneFileProgress: 0,
+        droneFileUploaded: false,
+        droneDate: null,
+        droneDateDialogAccepted: false,
+      });
     }
     render() {
         const formItemLayout = {
@@ -233,6 +308,7 @@ export class FarmFieldForm extends React.Component {
                         </Form.Item>
                         <Form.Item label={ this.state.localization.sowing_date } style={{ 'marginBottom': '12px' }}>
                             <DatePicker popupStyle={datePickerPopupStyle}
+                                        placeholder={ this.state.localization.select_date }
                                         onChange={this.handleSowingDateChange} value={this.state.date}></DatePicker>
                         </Form.Item>
                         <Form.Item  label={ this.state.localization.crop_type } style={{ 'marginBottom': '12px' }}>
@@ -255,12 +331,14 @@ export class FarmFieldForm extends React.Component {
                         <Divider style={{ margin: 12 }}></Divider>
                     </Row>
                     <Row>
-                        <Col span={16}>
+                        <Col span={14}>
                         { this.state.localization.add_drone_data_help }
                         </Col>
-                        <Col span={8}>
+                        <Col span={9} offset={1}>
                             <Upload accept=".tif"
-                                    onChange={ this.cropEstimationUploaded }
+                                    ref={this.droneUploadRef}
+                                    showUploadList={false}
+                                    onChange={ this.cropEstimationBeingUploaded }
                                     action={ this.getFileUploadPathForCropEstimation }>
                                 <Button type="primary" >
                                     <Icon type="upload" />
@@ -273,10 +351,10 @@ export class FarmFieldForm extends React.Component {
                         <Divider style={{ margin: 12 }}></Divider>
                     </Row>
                     <Row>
-                        <Col span={16}>
+                        <Col span={14}>
                             { this.state.localization.add_yield_data_help }
                         </Col>
-                        <Col span={8}>
+                        <Col span={9} offset={1}>
                             <Upload accept=".zip"
                                     onChange={ this.yieldDataUploaded }
                                     action={ this.getFileUploadPathForYieldData }>
@@ -311,6 +389,36 @@ export class FarmFieldForm extends React.Component {
                     </Row>
                 </div>
             }
+          <Modal
+            title={this.state.localization.add_drone_date_title}
+            visible={this.state.showDroneDateDialog}
+            onOk={this.handleDroneDateOk}
+            okText={this.state.droneDateDialogAccepted ? this.state.localization.waiting_for_upload_to_be_completed : this.state.localization.start_processing_drone_image}
+            okButtonProps={{ disabled: (this.state.droneDate === null) }}
+            confirmLoading={ this.state.droneDateDialogAccepted }
+            onCancel={this.handleDroneDateCancel}
+            cancelText={this.state.localization.cancel}
+            closable={false}
+            maskClosable={false}
+          >
+            <Form>
+              <Form.Item style={{ 'marginBottom': '12px' }}>
+                <DatePicker popupStyle={datePickerPopupStyle}
+                            placeholder={ this.state.localization.select_date }
+                            getCalendarContainer={() => { return document.getElementById('droneDateCalendarContainer') }}
+                            onChange={this.handleDroneDateChange} value={this.state.droneDate}/>
+              </Form.Item>
+            </Form>
+            <div style={{'marginTop': '18px', 'marginBottom': '18px', 'color': 'rgba(0, 0, 0, 0.85)'}}>
+              { this.state.localization.uploading_image }:
+              <Progress percent={this.state.droneFileProgress} status={ this.state.droneFileProgress < 100 ? 'active' : 'success'} />
+            </div>
+            <div>
+              <p>{ this.state.localization.drone_date_help }</p>
+              <p><strong>{ this.state.localization.attention }!</strong> { this.state.localization.drone_date_warning }</p>
+            </div>
+            <div id="droneDateCalendarContainer" style={{'position': 'absolute' , 'top': '0px', 'left': '0px', 'width': '100%', 'zIndex': '9999999999'}}></div>
+          </Modal>
         </div>
     }
 }
