@@ -260,7 +260,7 @@ export class FarmFieldForm extends React.Component {
     async yieldDataUploaded(e) {
         const file = e.file;
         if (file && file.status === 'done') {
-            const filePath = file.response;
+            const farmfieldFile = file.response;
             const farmfieldId = this.state.id;
             try {
                 await this.updateFileDate(farmfieldId, farmfieldFile.id, this.state.date);
