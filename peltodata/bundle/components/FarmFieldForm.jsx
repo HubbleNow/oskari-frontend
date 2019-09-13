@@ -81,9 +81,14 @@ export class FarmFieldForm extends React.Component {
             droneDateDialogAccepted: false,
             droneFileUploadCancelled: false,
             fieldExecutionsInProgress: [],
+            showYieldProgressDialog: false,
+            yieldFileProgress: 0,
+            yieldProgressDialogAccepted: false,
+            yieldUploadCancelled: false,
         };
 
         this.droneUploadRef = React.createRef();
+        this.yieldUploadRef = React.createRef();
 
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.handleIdStringChange = this.handleIdStringChange.bind(this);
@@ -102,6 +107,9 @@ export class FarmFieldForm extends React.Component {
         this.resetDroneDateDialog = this.resetDroneDateDialog.bind(this);
         this.setFieldExecutionsInProgress = this.setFieldExecutionsInProgress.bind(this);
         this.fieldExecutionsInProgressForType = this.fieldExecutionsInProgressForType.bind(this);
+        this.resetYieldProgressDialog = this.resetYieldProgressDialog.bind(this);
+        this.handleYieldDialogCancel = this.handleYieldDialogCancel.bind(this);
+        this.handleYieldDialogOk = this.handleYieldDialogOk.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -278,18 +286,64 @@ export class FarmFieldForm extends React.Component {
         return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?file_id=${farmfieldFileId}&type=yield`)
     }
     async yieldDataUploaded(e) {
-        const file = e.file;
-        if (file && file.status === 'done') {
-            const farmfieldFile = file.response;
-            const farmfieldId = this.state.id;
-            try {
-                await this.updateFileDate(farmfieldId, farmfieldFile.id, this.state.date);
-                await this.addYieldLayer(farmfieldId, farmfieldFile.id);
-                message.success(this.state.localization.yield_layer_creation_started);
-            } catch (error) {
-                message.error(this.state.localization.errors.failed_to_create_yield_layer);
-                console.log(error);
+        if (this.state.yieldUploadCancelled) {
+          if (e.file && e.file.status === "uploading") {
+            this.yieldUploadRef.current.handleManualRemove(e.file);
+            return;
+          } else if (e.file && (e.file.status === "done" || e.file.status === "removed")) {
+            this.setState({yieldUploadCancelled: false}, () => {
+              this.resetYieldProgressDialog();
+            });
+            return;
+          }
+          return;
+        };
+
+        let showYieldProgressDialog = this.state.showYieldProgressDialog;
+        let yieldDataUploaded = this.state.yieldDataUploaded;
+        let yieldFileProgress = 0;
+
+        if (this.state.yieldProgressDialogAccepted && yieldDataUploaded) {
+          showYieldProgressDialog = false;
+        } else {
+          showYieldProgressDialog = true;
+        }
+
+        if (e.file && e.file.status === "uploading") {
+          if (e.event) {
+            yieldFileProgress = Math.ceil(e.event.percent);
+          }
+        }
+
+        if (e.file && e.file.status === "done") {
+          yieldFileProgress = 100;
+          yieldDataUploaded = true;
+
+          const farmfieldFile = e.file.response;
+          const farmfieldId = this.state.id;
+          try {
+            if (this.state.yieldProgressDialogAccepted) {
+              this.resetYieldProgressDialog();
+            } else {
+              this.setState({
+                yieldDataUploaded: yieldDataUploaded,
+                yieldFileProgress: yieldFileProgress,
+              });
             }
+            await this.updateFileDate(farmfieldId, farmfieldFile.id, this.state.date);
+            await this.addYieldLayer(farmfieldId, farmfieldFile.id);
+            this.props.triggerFieldExecutionsPolling();
+            message.success(this.state.localization.yield_layer_creation_started);
+          } catch (error) {
+            message.error(this.state.localization.errors.failed_to_create_yield_layer);
+            console.log(error);
+          }
+        } else {
+          this.setState({
+            showYieldProgressDialog: showYieldProgressDialog,
+            yieldDataUploaded: yieldDataUploaded,
+            yieldFileProgress: yieldFileProgress,
+          });
         }
     }
     handleDroneDateOk() {
@@ -303,6 +357,19 @@ export class FarmFieldForm extends React.Component {
         this.setState({showDroneDateDialog: false, droneFileUploadCancelled: true});
         this.resetDroneDateDialog();
     }
+
+    handleYieldDialogOk() {
+        if (this.state.yieldDataUploaded) {
+          this.resetYieldProgressDialog();
+        } else {
+          this.setState({yieldProgressDialogAccepted: true});
+        }
+    }
+    handleYieldDialogCancel() {
+        this.setState({showYieldProgressDialog: false, yieldUploadCancelled: true});
+        this.resetYieldProgressDialog();
+    }
+
     resetDroneDateDialog() {
       this.setState({
         file: false,
@@ -311,6 +378,15 @@ export class FarmFieldForm extends React.Component {
         droneDate: null,
         droneDateDialogAccepted: false,
       });
+    }
+
+    resetYieldProgressDialog() {
+        this.setState({
+          showYieldProgressDialog: false,
+          yieldFileProgress: 0,
+          yieldProgressDialogAccepted: false,
+          yieldUploadCancelled: false,
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -434,6 +510,8 @@ export class FarmFieldForm extends React.Component {
                         </Col>
                         <Col span={9} offset={1}>
                             <Upload accept=".zip"
+                                    ref={this.yieldUploadRef}
+                                    showUploadList={false}
                                     onChange={ this.yieldDataUploaded }
                                     action={ this.getFileUploadPathForYieldData }>
                                 <Button type="primary" >
@@ -508,6 +586,27 @@ export class FarmFieldForm extends React.Component {
             <div>
               <p>{ this.state.localization.drone_date_help }</p>
               <p><strong>{ this.state.localization.attention }!</strong> { this.state.localization.drone_date_warning }</p>
+            </div>
+            <div id="droneDateCalendarContainer" style={{'position': 'absolute' , 'top': '0px', 'left': '0px', 'width': '100%', 'zIndex': '9999999999'}}></div>
+          </Modal>
+
+          <Modal
+            title={this.state.localization.yield_data_progress_title}
+            visible={this.state.showYieldProgressDialog}
+            onOk={this.handleYieldDialogOk}
+            okText={this.state.yieldProgressDialogAccepted ? this.state.localization.waiting_for_upload_to_be_completed : 'Ok'}
+            confirmLoading={ this.state.yieldProgressDialogAccepted }
+            onCancel={this.handleYieldDialogCancel}
+            cancelText={this.state.localization.cancel}
+            closable={false}
+            maskClosable={false}
+          >
+            <div style={{'marginBottom': '18px', 'color': 'rgba(0, 0, 0, 0.85)'}}>
+              { this.state.localization.uploading_file }:
+              <Progress percent={this.state.yieldFileProgress} status={ this.state.yieldFileProgress < 100 ? 'active' : 'success'} />
+            </div>
+            <div>
+              <p><strong>{ this.state.localization.attention }!</strong> { this.state.localization.yield_data_upload_warning }</p>
             </div>
             <div id="droneDateCalendarContainer" style={{'position': 'absolute' , 'top': '0px', 'left': '0px', 'width': '100%', 'zIndex': '9999999999'}}></div>
           </Modal>
