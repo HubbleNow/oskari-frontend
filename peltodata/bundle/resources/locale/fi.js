@@ -48,10 +48,15 @@ Oskari.registerLocalization(
             barley: 'Ohra',
             rye: 'Ruis',
         },
+        crop_estimation_raw: 'Tason luonti alkuperäisestä kuvasta',
+        crop_estimation: 'Tason luonti satoennusteesta',
+        yield: 'Tason luonti satokartasta',
         cancel: 'Peruuta',
         select_date: 'Valitse päivämäärä',
         uploading_image: 'Kuvan lataus',
         attention: 'Huomio',
+        started: 'Aloitettu',
+        in_error_state: 'Virhetilassa',
     }
 });
 

@@ -2,7 +2,9 @@ import React from 'react';
 import axios from 'axios';
 import moment from 'moment';
 
-import { Input, Form, Select, Popconfirm, Button, Divider, DatePicker, Col, Row, Upload, Icon, message, Modal, Progress } from 'antd';
+import _ from 'lodash';
+
+import { Input, Form, Select, Popconfirm, Button, Divider, DatePicker, Col, Row, Upload, Icon, message, Modal, Progress, Spin, Card } from 'antd';
 const { Option } = Select;
 
 import 'antd/lib/form/style/css';
@@ -18,6 +20,8 @@ import 'antd/lib/icon/style/css';
 import 'antd/lib/popconfirm/style/css';
 import 'antd/lib/message/style/css';
 import 'antd/lib/modal/style/css';
+import 'antd/lib/spin/style/css';
+import 'antd/lib/card/style/css';
 
 import './FarmFieldForm.css';
 
@@ -56,6 +60,7 @@ export class FarmFieldForm extends React.Component {
             droneDate: null,
             droneDateDialogAccepted: false,
             droneFileUploadCancelled: false,
+            fieldExecutionsInProgress: [],
         };
 
         this.droneUploadRef = React.createRef();
@@ -75,6 +80,8 @@ export class FarmFieldForm extends React.Component {
         this.startProcessingCropEstimation = this.startProcessingCropEstimation.bind(this);
         this.handleDroneDateChange = this.handleDroneDateChange.bind(this);
         this.resetDroneDateDialog = this.resetDroneDateDialog.bind(this);
+        this.setFieldExecutionsInProgress = this.setFieldExecutionsInProgress.bind(this);
+        this.fieldExecutionsInProgressForType = this.fieldExecutionsInProgressForType.bind(this);
     }
     handleDescriptionChange(event) {
         this.setState({ farmfieldDescription: event.target.value, dirty: true });
@@ -220,6 +227,7 @@ export class FarmFieldForm extends React.Component {
         }
     }
     async startProcessingCropEstimation() {
+        this.props.triggerFieldExecutionsPolling();
         this.setState({showDroneDateDialog: false});
         const file = this.state.file;
         if (file.status === 'done') {
@@ -242,9 +250,9 @@ export class FarmFieldForm extends React.Component {
     addYieldLayer(farmfieldId, filePath) {
         return axios.post(`/peltodata/api/farms/${farmfieldId}/layer?filename=${filePath}&type=yield`)
     }
-    async yieldDataUploaded() {
-        const file = this.file;
-        if (file.status === 'done') {
+    async yieldDataUploaded(e) {
+        const file = e.file;
+        if (file && file.status === 'done') {
             const filePath = file.response;
             const farmfieldId = this.state.id;
             try {
@@ -276,6 +284,34 @@ export class FarmFieldForm extends React.Component {
         droneDateDialogAccepted: false,
       });
     }
+
+    componentDidUpdate(prevProps) {
+      if (!_.isEqual(prevProps.fieldExecutions, this.props.fieldExecutions)) {
+        this.setFieldExecutionsInProgress();
+      }
+    }
+
+    componentDidMount() {
+      this.setFieldExecutionsInProgress();
+    }
+
+    setFieldExecutionsInProgress() {
+      let fieldExecutionsInProgress = [];
+      const now = moment();
+      this.props.fieldExecutions.forEach(fe => {
+        if (parseInt(fe.state, 10) !== 10) {
+          fieldExecutionsInProgress.push(fe);
+        } else if (moment(fe.executionStartedAt).isSame(now, 'day')) {
+          fieldExecutionsInProgress.push(fe);
+        }
+      })
+      this.setState({ fieldExecutionsInProgress });
+    }
+
+    fieldExecutionsInProgressForType(type) {
+        return this.state.fieldExecutionsInProgress.findIndex(fe => fe.outputType.includes(type)) > -1;
+    }
+
     render() {
         const formItemLayout = {
             labelCol: {
@@ -328,7 +364,7 @@ export class FarmFieldForm extends React.Component {
             { this.state.id !== -1 &&
                 <div>
                     <Row>
-                        <Divider style={{ margin: 12 }}></Divider>
+                        <Divider></Divider>
                     </Row>
                     <Row>
                         <Col span={14}>
@@ -347,8 +383,31 @@ export class FarmFieldForm extends React.Component {
                             </Upload>
                         </Col>
                     </Row>
+                    {this.state.fieldExecutionsInProgress.length > 0 &&
+                      <Row>
+                        <Col span={24} style={{paddingTop: '15px'}}>
+                          <Card bodyStyle={{padding: '6px 10px'}} style={{background: '#e6f7ff', borderColor: '#bae7ff'}}>
+                            {this.state.fieldExecutionsInProgress.map(execution => {
+                              if (!execution.outputType.includes('crop_estimation')) return;
+                              return (
+                                <Row key={execution.id}>
+                                  <Col span={24}>
+                                    {execution.state === -10 && <Spin indicator={<Icon type="exclamation-circle" style={{ fontSize: 14, color: '#ffa940', marginRight: '7px' }} />} />}
+                                    {execution.state === 0 && <Spin indicator={<Icon type="loading" style={{ fontSize: 14, marginRight: '7px' }} spin />} />}
+                                    {execution.state === 10 && <Spin indicator={<Icon type="check-circle" style={{ fontSize: 14, marginRight: '7px', color: '#73d13d' }} />} />}
+                                    <span style={{fontSize: '12px', paddingTop: '2px'}}>
+                                      {execution.state === -10 && <strong>{ this.state.localization.in_error_state }! </strong>}{this.state.localization[execution.outputType]} ({this.state.localization.started}: {moment(execution.executionStartedAt).format('HH:mm DD.MM.YY')})
+                                    </span>
+                                  </Col>
+                                </Row>
+                              )
+                            })}
+                          </Card>
+                        </Col>
+                      </Row>
+                    }
                     <Row>
-                        <Divider style={{ margin: 12 }}></Divider>
+                        <Divider></Divider>
                     </Row>
                     <Row>
                         <Col span={14}>
@@ -365,8 +424,31 @@ export class FarmFieldForm extends React.Component {
                             </Upload>
                         </Col>
                     </Row>
+                    {this.fieldExecutionsInProgressForType('yield') &&
                     <Row>
-                        <Divider style={{ margin: 12 }}></Divider>
+                      <Col span={24} style={{paddingTop: '15px'}}>
+                        <Card bodyStyle={{padding: '6px 10px'}} style={{background: '#e6f7ff', borderColor: '#bae7ff'}}>
+                          {this.state.fieldExecutionsInProgress.map(execution => {
+                            if (!execution.outputType.includes('yield')) return;
+                            return (
+                              <Row key={execution.id}>
+                                <Col span={24}>
+                                  {execution.state === -10 && <Spin indicator={<Icon type="exclamation-circle" style={{ fontSize: 14, color: '#ffa940', marginRight: '7px' }} />} />}
+                                  {execution.state === 0 && <Spin indicator={<Icon type="loading" style={{ fontSize: 14, marginRight: '7px' }} spin />} />}
+                                  {execution.state === 10 && <Spin indicator={<Icon type="check-circle" style={{ fontSize: 14, marginRight: '7px', color: '#73d13d' }} />} />}
+                                  <span style={{fontSize: '12px', paddingTop: '2px'}}>
+                                        {execution.state === -10 && <strong>{ this.state.localization.in_error_state }! </strong>}{this.state.localization[execution.outputType]} ({this.state.localization.started}: {moment(execution.executionStartedAt).format('HH:mm DD.MM.YY')})
+                                      </span>
+                                </Col>
+                              </Row>
+                            )
+                          })}
+                        </Card>
+                      </Col>
+                    </Row>
+                    }
+                    <Row>
+                        <Divider></Divider>
                     </Row>
                     <Row>
                         <Col span={16}>

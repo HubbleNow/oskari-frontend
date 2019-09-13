@@ -14,9 +14,6 @@ export class FlyoutContent extends React.Component {
         super(props);
         const localization = Oskari.getLocalization("peltodata");
 
-        this.loadFields();
-        this.loadExecutions();
-
         this.state = {
             activePanel: null,
             newFieldTemplate: {
@@ -26,11 +23,20 @@ export class FlyoutContent extends React.Component {
                 farmfieldCropSowingDate: new Date(),
             },
             fields: [],
+            fieldExecutions: [],
+            shouldFieldExecutionsBePolled: false,
         };
+
         this.handleFarmfieldAdded = this.handleFarmfieldAdded.bind(this);
         this.handleFarmfieldSaved = this.handleFarmfieldSaved.bind(this);
         this.handleFarmfieldDeleted = this.handleFarmfieldDeleted.bind(this);
         this.handleActivePanelChange = this.handleActivePanelChange.bind(this);
+        this.triggerFieldExecutionsPolling = this.triggerFieldExecutionsPolling.bind(this);
+    }
+
+    componentDidMount() {
+      this.loadFields();
+      this.loadExecutions();
     }
 
     handleFarmfieldSaved(farm) {
@@ -67,15 +73,41 @@ export class FlyoutContent extends React.Component {
         this.loadFields();
     }
 
+    componentDidUpdate(prevProps, prevState) {
+      if (prevState.shouldFieldExecutionsBePolled !== this.state.shouldFieldExecutionsBePolled) {
+        if (this.state.shouldFieldExecutionsBePolled) {
+          this.pollExecutions();
+        }
+      }
+    }
+
+    pollExecutions() {
+      setTimeout(() => {
+        this.loadExecutions()
+          .then(() => {
+            if (this.state.shouldFieldExecutionsBePolled) this.pollExecutions();
+          })
+      }, 5000);
+    }
+
+    triggerFieldExecutionsPolling() {
+      if (!this.state.shouldFieldExecutionsBePolled) {
+        this.loadExecutions();
+      }
+    }
+
     async loadExecutions() {
-        const fields = [];
+        const fieldExecutions = [];
         try {
             const response = await axios.get("peltodata/api/farms/executions");
-            response.data.forEach(d => fields.push(d));
-            console.log(fields);
+            response.data.forEach(d => fieldExecutions.push(d));
         } catch (error) {
             console.log(error);
         }
+
+        const shouldFieldExecutionsBePolled = fieldExecutions.findIndex(fe => fe.state === -10 || fe.state === 0) > -1;
+
+        this.setState({ fieldExecutions, shouldFieldExecutionsBePolled });
     }
 
     async loadFields() {
@@ -93,6 +125,10 @@ export class FlyoutContent extends React.Component {
         })
     }
 
+    getFieldExecutions(farmfieldId) {
+        return this.state.fieldExecutions.filter(fe => fe.farmfieldId === farmfieldId);
+    }
+
     render() {
         const fields = [];
         this.state.fields.forEach(field => {
@@ -101,6 +137,8 @@ export class FlyoutContent extends React.Component {
                     <FarmFieldForm onFarmfieldAdded={this.handleFarmfieldAdded}
                                    onFarmfieldSaved={this.handleFarmfieldSaved}
                                    onFarmfieldDeleted={this.handleFarmfieldDeleted}
+                                   fieldExecutions={this.getFieldExecutions(field.farmfieldId)}
+                                   triggerFieldExecutionsPolling={this.triggerFieldExecutionsPolling}
                                    field={field}/>
                 </Panel>,
             )

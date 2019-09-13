@@ -47,9 +47,14 @@ Oskari.registerLocalization(
             barley: 'Barley',
             rye: 'Rye',
         },
+        crop_estimation_raw: 'Creating layer from original image',
+        crop_estimation: 'Creating layer from crop estimation',
+        yield: 'Creating layer from yield data',
         cancel: 'Cancel',
         select_date: 'Select date',
         uploading_image: 'Image uploading status',
         attention: 'Attention',
+        started: 'Started',
+        in_error_state: 'Error',
     }
 });
