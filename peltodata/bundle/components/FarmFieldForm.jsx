@@ -275,7 +275,6 @@ export class FarmFieldForm extends React.Component {
         }
     }
     async startProcessingCropEstimation() {
-        this.props.triggerFieldExecutionsPolling();
         this.setState({showDroneDateDialog: false});
         const file = this.state.file;
         if (file.status === 'done') {
@@ -286,6 +285,7 @@ export class FarmFieldForm extends React.Component {
             await Promise.all([this.addCropEstimationLayer(farmfieldId, farmfieldFile.id), this.addCropEstimationRawLayer(farmfieldId, farmfieldFile.id)])
             this.resetDroneDateDialog();
             message.success(this.state.localization.layer_creation_started);
+            this.props.triggerFieldExecutionsPolling();
           } catch (error) {
             this.resetDroneDateDialog();
             message.error(this.state.localization.errors.failed_to_create_layers);
