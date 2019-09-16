@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import 'moment/min/locales.js';
+moment.locale(Oskari.getLang());
 
 import _ from 'lodash';
 
@@ -24,6 +26,9 @@ import 'antd/lib/spin/style/css';
 import 'antd/lib/card/style/css';
 
 import './FarmFieldForm.css';
+
+import datePickerLocale_fi from 'antd/es/date-picker/locale/fi_FI';
+import datePickerLocale_en from 'antd/es/date-picker/locale/en_US';
 
 class FieldExecutionStatus extends React.Component {
   constructor(props) {
@@ -49,8 +54,17 @@ export class FarmFieldForm extends React.Component {
     constructor(props) {
         super(props);
         const localization = Oskari.getLocalization("peltodata");
+        const currentLocale = Oskari.getLang();
+
+        if (currentLocale === 'fi') {
+          this.datePickerLocale = datePickerLocale_fi;
+        } else {
+          this.datePickerLocale = datePickerLocale_en;
+        }
+
         this.state = {
             localization,
+            currentLocale: currentLocale,
             date: moment(props.field.farmfieldSowingDate),
             id: props.field.farmfieldId,
             farmfieldIdString: props.field.farmfieldIdString,
@@ -448,6 +462,8 @@ export class FarmFieldForm extends React.Component {
                         </Form.Item>
                         <Form.Item label={ this.state.localization.sowing_date } style={{ 'marginBottom': '12px' }}>
                             <DatePicker popupStyle={datePickerPopupStyle}
+                                        locale={this.datePickerLocale}
+                                        defaultValue={moment()}
                                         placeholder={ this.state.localization.select_date }
                                         onChange={this.handleSowingDateChange} value={this.state.date}></DatePicker>
                         </Form.Item>
@@ -574,6 +590,8 @@ export class FarmFieldForm extends React.Component {
             <Form>
               <Form.Item style={{ 'marginBottom': '12px' }}>
                 <DatePicker popupStyle={datePickerPopupStyle}
+                            locale={this.datePickerLocale}
+                            defaultValue={moment()}
                             placeholder={ this.state.localization.select_date }
                             getCalendarContainer={() => { return document.getElementById('droneDateCalendarContainer') }}
                             onChange={this.handleDroneDateChange} value={this.state.droneDate}/>
