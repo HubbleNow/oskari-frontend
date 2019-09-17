@@ -25,6 +25,9 @@ Oskari.clazz.define("Oskari.peltodata.bundle.PeltodataBundle", function () {
         }, {
             "type": "text/javascript",
             "src": "./Flyout.js",
+        }, {
+            "type": "text/javascript",
+            "src": "./LayersChangedEvent.js"
         }],
         "locales": [{
             "lang": "fi",

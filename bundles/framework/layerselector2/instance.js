@@ -242,7 +242,12 @@ Oskari.clazz.define(
                 var layerId = event.getLayerId();
                 this.layerChanged(layerId);
             },
-
+            LayersChanged () {
+                this.reloadLayers(() => {
+                    const flyout = this.plugins['Oskari.userinterface.Flyout'];
+                    flyout.populateLayers();
+                });
+            },
             /**
              * @method ExtensionUpdatedEvent
              */

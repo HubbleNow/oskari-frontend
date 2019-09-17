@@ -139,7 +139,7 @@ Oskari.clazz.define('Oskari.peltodata.bundle.PeltodataInstance',
          * Event is handled forwarded to correct #eventHandlers if found
          * or discarded if not.
          */
-        onEvent: function (event) {
+        onEvent(event) {
             var handler = this.eventHandlers[event.getName()];
             if (!handler) { return; }
 
@@ -151,9 +151,6 @@ Oskari.clazz.define('Oskari.peltodata.bundle.PeltodataInstance',
          * @static
          */
         eventHandlers: {
-            'RoleChangedEvent': function (event) {
-                this.plugins['Oskari.userinterface.Flyout'].handleRoleChange(event.getRole(), event.getOperation());
-            }
         },
 
         /**
@@ -188,6 +185,8 @@ Oskari.clazz.define('Oskari.peltodata.bundle.PeltodataInstance',
         startExtension: function () {
             this.plugins['Oskari.userinterface.Tile'] =
                 Oskari.clazz.create('Oskari.framework.bundle.peltodata.Tile', this);
+            this.plugins['Oskari.userinterface.Flyout'] =
+                Oskari.clazz.create('Oskari.mapframework.bundle.peltodata.Flyout', this);
         },
 
         /**
