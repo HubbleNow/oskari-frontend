@@ -76,12 +76,10 @@ Oskari.clazz.define(name,
             this.state = state;
         },
         createUi: function () {
-            console.log('createUI');
             this.refresh();
         },
         refresh() {
          const element = this.container;
-         console.log(element);
          ReactDOM.render(<FlyoutContent></FlyoutContent>, element);
         },
     }, {
