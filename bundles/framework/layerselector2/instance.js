@@ -83,9 +83,6 @@ Oskari.clazz.define(
                 sandboxName = conf ? conf.sandbox : 'sandbox',
                 sandbox = Oskari.getSandbox(sandboxName),
                 request,
-                mapLayerService,
-                successCB,
-                failureCB,
                 p;
 
             if (me.started) {
@@ -119,28 +116,33 @@ Oskari.clazz.define(
             // draw ui
             me.createUi();
 
-            mapLayerService = me.sandbox.getService(
-                'Oskari.mapframework.service.MapLayerService'
-            );
-
             sandbox.registerAsStateful(me.mediator.bundleId, me);
 
-            successCB = function () {
-                // massive update so just recreate the whole ui
-                // me.plugins['Oskari.userinterface.Flyout'].populateLayers();
-                // added through maplayerevent
-            };
-            failureCB = function () {
-                alert(me.getLocalization('errors').loadFailed);
-            };
-            var options = {};
-            if (me.conf && me.conf.forceProxy) {
-                // forces proxy for all layers
-                options.forceProxy = me.conf.forceProxy;
-            }
-            mapLayerService.loadAllLayerGroupsAjax(successCB, failureCB, options);
+            this.reloadLayers();
 
             this._registerForGuidedTour();
+        },
+        reloadLayers (cb) {
+            const mapLayerService = this.sandbox.getService(
+                'Oskari.mapframework.service.MapLayerService'
+            );
+            const successCB = function () {
+                if (cb != null) {
+                    cb();
+                }
+                // massive update so just recreate the whole ui
+                // this.plugins['Oskari.userinterface.Flyout'].populateLayers();
+                // added through maplayerevent
+            };
+            const failureCB = function () {
+                alert(this.getLocalization('errors').loadFailed);
+            };
+            const options = {};
+            if (this.conf && this.conf.forceProxy) {
+                // forces proxy for all layers
+                options.forceProxy = true;
+            }
+            mapLayerService.loadAllLayerGroupsAjax(successCB, failureCB, options);
         },
         /**
          * @method init

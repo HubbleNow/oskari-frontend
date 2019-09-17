@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 
-import Collapse from 'antd/lib/collapse';
+import { Collapse } from 'antd';
 
 const { Panel } = Collapse;
 
@@ -39,6 +39,12 @@ export class FlyoutContent extends React.Component {
       this.loadExecutions();
     }
 
+    emitLayersChanged() {
+        const sandbox = Oskari.getSandbox();
+        const addEvent = Oskari.eventBuilder('LayersChanged')(this);
+        sandbox.notifyAll(addEvent);
+    }
+
     handleFarmfieldSaved(farm) {
         const fields = this.state.fields;
         const field = fields.find(f => f.farmfieldId === farm.farmfieldId);
@@ -47,6 +53,7 @@ export class FlyoutContent extends React.Component {
         field.farmfieldSowingDate = farm.farmfieldSowingDate;
         field.farmfieldCropType = farm.farmfieldCropType;
         this.setState({ fields });
+        this.emitLayersChanged();
     }
     handleFarmfieldAdded(farm) {
         const fields = this.state.fields;
@@ -63,14 +70,16 @@ export class FlyoutContent extends React.Component {
         this.loadFields().then(() => {
             this.setState({ activePanel });
         });
+        this.emitLayersChanged();
     }
 
     handleActivePanelChange(panels) {
         this.setState({ activePanel: panels });
     }
 
-    handleFarmfieldDeleted() {
-        this.loadFields();
+    async handleFarmfieldDeleted() {
+        await this.loadFields();
+        this.emitLayersChanged();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -104,6 +113,14 @@ export class FlyoutContent extends React.Component {
         } catch (error) {
             console.log(error);
         }
+
+        const incompleteExecutionIds = this.state.fieldExecutions.filter(e => e.state === 0).map(e => e.id);
+        const completedExecutionIds = fieldExecutions.filter(e => e.state !== 0).map(e => e.id);
+        const executionCompleted = completedExecutionIds.some(id => incompleteExecutionIds.indexOf(id) !== -1);
+        if (executionCompleted) {
+            this.emitLayersChanged();
+        }
+
 
         const shouldFieldExecutionsBePolled = fieldExecutions.findIndex(fe => fe.state === -10 || fe.state === 0) > -1;
 
