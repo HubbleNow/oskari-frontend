@@ -1,7 +1,6 @@
 
 module.exports = {
-    // Add croptype here and matching locale in en.js, fi.js and sv.js
-    getCropTypes(localization) {
+    cropKeys() {
         const cropKeys = [
             'syysruis',
             'syysvehna',
@@ -15,6 +14,12 @@ module.exports = {
             'syysrapsi',
             'kevatrapsi',
         ];
+
+        return cropKeys;
+    },
+    // Add croptype here and matching locale in en.js, fi.js and sv.js
+    getCropTypes(localization) {
+        const cropKeys = this.cropKeys();
 
         return cropKeys.map(key => {
             return {

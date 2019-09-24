@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-
+import croptypes from './croptypes';
 import { Collapse } from 'antd';
 
 const { Panel } = Collapse;
@@ -19,7 +19,7 @@ export class FlyoutContent extends React.Component {
             newFieldTemplate: {
                 farmfieldId: -1,
                 farmfieldDescription: localization.new_field,
-                farmfieldCropType: 'oat',
+                farmfieldCropType: croptypes.cropKeys()[0],
                 farmfieldCropSowingDate: new Date(),
             },
             fields: [],
