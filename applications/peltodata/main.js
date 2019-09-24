@@ -30,7 +30,7 @@ import 'oskari-lazy-loader?layerlist!../../packages/framework/layerlist/bundle.j
 import 'oskari-loader!../../packages/framework/bundle/layerselection2/bundle.js';
 
 import 'oskari-loader!../../packages/framework/bundle/personaldata/bundle.js';
-
+import 'oskari-loader!../../packages/framework/bundle/timeseries/bundle.js';
 import 'oskari-loader!../../packages/framework/bundle/publisher2/bundle.js';
 
 import 'oskari-loader!../../packages/framework/bundle/maplegend/bundle.js';
