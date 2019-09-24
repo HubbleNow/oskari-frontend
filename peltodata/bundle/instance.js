@@ -248,7 +248,7 @@ Oskari.clazz.define('Oskari.peltodata.bundle.PeltodataInstance',
          * @return {Object} bundle state as JSON
          */
         getState: function () {
-            return this.plugins['Oskari.userinterface.Flyout'].getState();
+            // return this.plugins['Oskari.userinterface.Flyout'].getState();
         }
     }, {
 
