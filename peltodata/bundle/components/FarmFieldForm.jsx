@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import croptypes from './croptypes';
 import 'moment/min/locales.js';
 moment.locale(Oskari.getLang());
 
@@ -74,19 +75,7 @@ export class FarmFieldForm extends React.Component {
             onFarmfieldAdded: props.onFarmfieldAdded,
             onFarmfieldSaved: props.onFarmfieldSaved,
             onFarmfieldDeleted: props.onFarmfieldDeleted,
-            cropTypes: [{
-                value: 'oat',
-                text: localization.crop_types.oat,
-            }, {
-                value: 'wheat',
-                text: localization.crop_types.wheat,
-            }, {
-                value: 'rye',
-                text: localization.crop_types.rye,
-            }, {
-                value: 'barley',
-                text: localization.crop_types.barley,
-            }],
+            cropTypes: croptypes.getCropTypes(localization),
             showDroneDateDialog: false,
             file: false,
             droneFileProgress: 0,
